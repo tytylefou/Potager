@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#3B2A0A"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Mon Potager"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <title>Mon Potager 🌿</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    body{font-family:'Lora',Georgia,serif;background:linear-gradient(160deg,#FFFDE8 0%,#F5EDD0 60%,#EDE0B8 100%);min-height:100vh;min-height:100dvh;overscroll-behavior:none;}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#D4B896;border-radius:99px}
+    input,select{font-family:'Lora',Georgia,serif;-webkit-appearance:none;appearance:none;}
+    input:focus,select:focus{outline:2px solid #C9A048;}
+    button{font-family:'Lora',Georgia,serif;cursor:pointer;}
+
+    /* HEADER */
+    #header{background:linear-gradient(135deg,#3B2A0A 0%,#5C3D11 50%,#7A5320 100%);padding:env(safe-area-inset-top,16px) 20px 20px;color:#FFF8E1;}
+    #header .label{font-size:11px;letter-spacing:3px;opacity:.6;margin-bottom:6px;font-family:monospace;}
+    #header h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;line-height:1.1;}
+    #header p{opacity:.6;font-size:13px;margin-top:4px;}
+    .week-ctrl{margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .week-ctrl span.lbl{font-size:12px;opacity:.7;}
+    .week-nav{display:flex;align-items:center;gap:8px;}
+    .week-nav button{background:rgba(255,255,255,.15);border:none;color:#FFF8E1;border-radius:8px;width:34px;height:34px;font-size:18px;display:flex;align-items:center;justify-content:center;}
+    .week-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;min-width:52px;text-align:center;}
+    .week-mois{opacity:.5;font-size:13px;}
+
+    /* TABS */
+    #tabs{background:#F5EDD0;border-bottom:2px solid #E0D0A0;display:flex;position:sticky;top:0;z-index:100;}
+    #tabs button{flex:1;padding:13px 0;border:none;background:transparent;font-size:13px;font-weight:600;color:#A08050;border-bottom:3px solid transparent;transition:all .2s;}
+    #tabs button.active{color:#5C3D11;border-bottom:3px solid #C9A048;}
+
+    /* CONTENT */
+    #content{max-width:700px;margin:0 auto;padding:16px 14px 80px;}
+
+    /* FILTRES */
+    .filtres{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .filtres input{flex:1;min-width:140px;padding:10px 12px;border:1.5px solid #D4C098;border-radius:12px;background:#FFFEF5;font-size:14px;color:#3B2A0A;}
+    .filtres select{padding:10px 12px;border:1.5px solid #D4C098;border-radius:12px;background:#FFFEF5;font-size:13px;color:#3B2A0A;}
+
+    /* LÉGENDE */
+    .legende{display:flex;gap:14px;font-size:11px;color:#9B8050;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+    .legende-dot{display:inline-block;width:12px;height:8px;border-radius:4px;margin-right:4px;vertical-align:middle;}
+    .legende-count{margin-left:auto;font-weight:600;}
+
+    /* CARD */
+    .card{background:#FFFEF5;border:1.5px solid #E5E0D0;border-radius:16px;overflow:hidden;margin-bottom:10px;transition:box-shadow .2s;}
+    .card.open{box-shadow:0 8px 32px rgba(80,60,20,.13);}
+    .card-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;}
+    .card-emoji{font-size:28px;flex-shrink:0;}
+    .card-info{flex:1;min-width:0;}
+    .card-title{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+    .card-name{font-weight:700;font-size:16px;color:#3B2A0A;font-family:'Playfair Display',serif;}
+    .tag{font-size:10px;background:#F3EDD8;color:#7A6035;border-radius:99px;padding:2px 8px;font-family:monospace;white-space:nowrap;}
+    .badge{font-size:10px;border-radius:99px;padding:2px 8px;font-weight:600;white-space:nowrap;}
+    .badge-semis{background:#D1FAE5;color:#065F46;}
+    .badge-plant{background:#DBEAFE;color:#1E40AF;}
+    .badge-recolte{background:#FEF3C7;color:#92400E;}
+    .bar-wrap{height:8px;background:#E5E7EB;border-radius:99px;overflow:hidden;margin-bottom:3px;position:relative;}
+    .bar-fill{position:absolute;height:100%;border-radius:99px;}
+    .card-chevron{color:#A08050;font-size:16px;flex-shrink:0;transition:transform .2s;}
+    .card.open .card-chevron{transform:rotate(180deg);}
+
+    /* DETAILS */
+    .card-details{border-top:1.5px solid #EDE8D8;padding:14px 16px;background:#FDFAF0;display:none;}
+    .card.open .card-details{display:block;}
+    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+    .detail-box{background:#FFFEF8;border:1px solid #E8E0C8;border-radius:10px;padding:8px 10px;}
+    .detail-box.full{grid-column:1/-1;}
+    .detail-label{font-size:10px;color:#A08050;margin-bottom:2px;}
+    .detail-value{font-size:13px;font-weight:600;color:#3B2A0A;}
+    .note-box{background:#FFF8E1;border-radius:10px;padding:10px 12px;font-size:12px;color:#78530A;font-style:italic;margin-bottom:10px;}
+    .legend-mini{display:flex;gap:14px;font-size:10px;color:#9B8050;}
+
+    /* CETTE SEMAINE */
+    .week-header{margin-bottom:16px;padding:14px 18px;background:#FFF8E1;border-radius:16px;border:1.5px solid #E0D0A0;}
+    .week-header h2{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#3B2A0A;margin-bottom:2px;}
+    .week-header p{color:#9B8050;font-size:12px;}
+    .action-group{margin-bottom:14px;border-radius:14px;padding:14px 16px;}
+    .action-title{font-weight:700;font-size:14px;margin-bottom:8px;}
+    .action-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(0,0,0,.06);}
+    .action-emoji{font-size:20px;flex-shrink:0;}
+    .action-name{font-weight:600;color:#3B2A0A;font-size:13px;}
+    .action-sub{font-size:11px;color:#7A6035;margin-top:1px;}
+    .action-sol{font-size:11px;background:rgba(255,255,255,.5);border-radius:8px;padding:3px 7px;flex-shrink:0;}
+    .action-empty{font-size:12px;opacity:.6;}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:40px;color:#A08050;}
+
+    /* INSTALL BANNER */
+    #install-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:#3B2A0A;color:#FFF8E1;padding:12px 16px;z-index:200;align-items:center;gap:10px;padding-bottom:calc(12px + env(safe-area-inset-bottom));}
+    #install-banner.show{display:flex;}
+    #install-banner p{flex:1;font-size:13px;line-height:1.4;}
+    #install-banner button{background:#C9A048;color:#3B2A0A;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap;}
+    #install-close{background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;padding:0 4px;}
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="label">🌿 MON POTAGER</div>
+  <h1>Calendrier du Jardin</h1>
+  <p>Pays Basque · Semaine en cours</p>
+  <div class="week-ctrl">
+    <span class="lbl">Semaine :</span>
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">‹</button>
+      <span class="week-num" id="week-display">S1</span>
+      <button onclick="changeWeek(1)">›</button>
+    </div>
+    <span class="week-mois" id="week-mois-display"></span>
+  </div>
+</div>
+
+<div id="tabs">
+  <button class="active" onclick="setTab('plantes',this)">🌿 Mes plantes</button>
+  <button onclick="setTab('calendrier',this)">📅 Cette semaine</button>
+</div>
+
+<div id="content"></div>
+
+<!-- Install banner Android -->
+<div id="install-banner">
+  <p>📱 Installe l'appli sur ton téléphone pour un accès direct !</p>
+  <button id="install-btn">Installer</button>
+  <button id="install-close" onclick="closeBanner()">✕</button>
+</div>
+
+<script>
+const MOIS = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"];
+
+const PLANTS = [
+  {id:1,nom:"Tomate",emoji:"🍅",categorie:"Légume-fruit",semisDebut:8,semisFin:12,plantationDebut:18,plantationFin:22,recolteDebut:28,recolteFin:40,joursLevee:14,joursRecolte:70,profondeurSemis:0.5,espacement:60,arrosage:"Régulier (2×/sem)",soleil:"☀️ Plein soleil",notes:"Tuteurer. Supprimer les gourmands."},
+  {id:2,nom:"Courgette",emoji:"🥒",categorie:"Légume-fruit",semisDebut:14,semisFin:18,plantationDebut:19,plantationFin:22,recolteDebut:24,recolteFin:38,joursLevee:7,joursRecolte:50,profondeurSemis:2,espacement:80,arrosage:"Abondant (3×/sem)",soleil:"☀️ Plein soleil",notes:"Pollinisation manuelle en serre. Récolter jeune."},
+  {id:3,nom:"Poivron",emoji:"🫑",categorie:"Légume-fruit",semisDebut:6,semisFin:10,plantationDebut:19,plantationFin:22,recolteDebut:30,recolteFin:42,joursLevee:14,joursRecolte:90,profondeurSemis:0.5,espacement:45,arrosage:"Régulier (2×/sem)",soleil:"☀️ Plein soleil",notes:"Démarrer tôt en intérieur. Aime la chaleur."},
+  {id:4,nom:"Aubergine",emoji:"🍆",categorie:"Légume-fruit",semisDebut:6,semisFin:9,plantationDebut:19,plantationFin:21,recolteDebut:30,recolteFin:40,joursLevee:14,joursRecolte:80,profondeurSemis:0.5,espacement:50,arrosage:"Régulier (2×/sem)",soleil:"☀️ Plein soleil",notes:"Protéger du froid. Idéale sous serre."},
+  {id:5,nom:"Concombre",emoji:"🥒",categorie:"Légume-fruit",semisDebut:13,semisFin:17,plantationDebut:19,plantationFin:22,recolteDebut:25,recolteFin:35,joursLevee:5,joursRecolte:55,profondeurSemis:1,espacement:50,arrosage:"Abondant (3×/sem)",soleil:"☀️ Plein soleil",notes:"Tuteurer. Récolter régulièrement."},
+  {id:6,nom:"Pomme de terre",emoji:"🥔",categorie:"Légume-racine",semisDebut:null,semisFin:null,plantationDebut:12,plantationFin:17,recolteDebut:26,recolteFin:38,joursLevee:null,joursRecolte:90,profondeurSemis:10,espacement:35,arrosage:"Modéré (1×/sem)",soleil:"☀️ Plein soleil",notes:"Butter régulièrement. Planter les tubercules."},
+  {id:7,nom:"Carotte",emoji:"🥕",categorie:"Légume-racine",semisDebut:10,semisFin:28,plantationDebut:null,plantationFin:null,recolteDebut:20,recolteFin:44,joursLevee:14,joursRecolte:70,profondeurSemis:1,espacement:8,arrosage:"Modéré (1×/sem)",soleil:"☀️ Plein soleil",notes:"Éclaircir à 8cm. Ameublir le sol en profondeur."},
+  {id:8,nom:"Oignon",emoji:"🧅",categorie:"Légume-bulbe",semisDebut:5,semisFin:9,plantationDebut:12,plantationFin:16,recolteDebut:28,recolteFin:36,joursLevee:12,joursRecolte:100,profondeurSemis:1,espacement:15,arrosage:"Peu (1×/sem)",soleil:"☀️ Plein soleil",notes:"Arrêter l'arrosage quand les fanes tombent."},
+  {id:9,nom:"Artichaut",emoji:"🌿",categorie:"Légume-fleur",semisDebut:5,semisFin:8,plantationDebut:14,plantationFin:17,recolteDebut:18,recolteFin:26,joursLevee:21,joursRecolte:90,profondeurSemis:1,espacement:80,arrosage:"Régulier (2×/sem)",soleil:"☀️ Plein soleil",notes:"Vivace. Protéger du gel. Surveiller les pucerons noirs."},
+  {id:10,nom:"Salade",emoji:"🥬",categorie:"Feuille",semisDebut:9,semisFin:36,plantationDebut:12,plantationFin:38,recolteDebut:16,recolteFin:44,joursLevee:7,joursRecolte:45,profondeurSemis:0.5,espacement:25,arrosage:"Régulier (2×/sem)",soleil:"🌤️ Mi-soleil",notes:"Semer en continu toutes les 3 semaines."},
+  {id:11,nom:"Épinard",emoji:"🌿",categorie:"Feuille",semisDebut:7,semisFin:15,plantationDebut:null,plantationFin:null,recolteDebut:12,recolteFin:24,joursLevee:10,joursRecolte:40,profondeurSemis:2,espacement:20,arrosage:"Régulier (2×/sem)",soleil:"🌤️ Mi-soleil",notes:"Bolte par forte chaleur. Préfère l'automne/printemps."},
+  {id:12,nom:"Haricot vert",emoji:"🫘",categorie:"Légumineuse",semisDebut:17,semisFin:24,plantationDebut:null,plantationFin:null,recolteDebut:23,recolteFin:34,joursLevee:8,joursRecolte:55,profondeurSemis:3,espacement:15,arrosage:"Modéré (1×/sem)",soleil:"☀️ Plein soleil",notes:"Semer directement en place. Ne pas transplanter."},
+  {id:19,nom:"Haricot grimpant",emoji:"🫘",categorie:"Légumineuse",semisDebut:17,semisFin:22,plantationDebut:null,plantationFin:null,recolteDebut:24,recolteFin:38,joursLevee:8,joursRecolte:65,profondeurSemis:4,espacement:25,arrosage:"Régulier (2×/sem)",soleil:"☀️ Plein soleil",notes:"Installer un treillis ou des rames de 1,5–2m. Semer 3 graines par poteau. Production plus longue que le nain. Arroser au pied sans mouiller les feuilles."},
+  {id:20,nom:"Phacélie",emoji:"💜",categorie:"Engrais vert",semisDebut:13,semisFin:36,plantationDebut:null,plantationFin:null,recolteDebut:16,recolteFin:40,joursLevee:7,joursRecolte:45,profondeurSemis:0.5,espacement:15,arrosage:"Peu (1×/sem)",soleil:"☀️ Plein soleil",notes:"Faucher avant grenaison et enfouir comme engrais vert. Excellente plante mellifère. Ameublit le sol et attire les pollinisateurs. Compatible avec toutes les cultures."},
+  {id:13,nom:"Pois",emoji:"🫛",categorie:"Légumineuse",semisDebut:8,semisFin:14,plantationDebut:null,plantationFin:null,recolteDebut:18,recolteFin:25,joursLevee:10,joursRecolte:65,profondeurSemis:3,espacement:10,arrosage:"Peu (1×/sem)",soleil:"☀️ Plein soleil",notes:"Tuteurer. Semer tôt au printemps."},
+  {id:14,nom:"Ail",emoji:"🧄",categorie:"Légume-bulbe",semisDebut:null,semisFin:null,plantationDebut:40,plantationFin:48,recolteDebut:24,recolteFin:28,joursLevee:null,joursRecolte:210,profondeurSemis:5,espacement:15,arrosage:"Peu (1×/sem)",soleil:"☀️ Plein soleil",notes:"Planter les caïeux en automne. Récolter quand les fanes jaunissent."},
+  {id:15,nom:"Basilic",emoji:"🌿",categorie:"Aromatique",semisDebut:12,semisFin:16,plantationDebut:19,plantationFin:22,recolteDebut:22,recolteFin:38,joursLevee:7,joursRecolte:60,profondeurSemis:0.3,espacement:20,arrosage:"Régulier (2×/sem)",soleil:"☀️ Plein soleil",notes:"Pincer régulièrement. Craint le froid."},
+  {id:16,nom:"Persil",emoji:"🌿",categorie:"Aromatique",semisDebut:9,semisFin:18,plantationDebut:null,plantationFin:null,recolteDebut:16,recolteFin:48,joursLevee:21,joursRecolte:70,profondeurSemis:0.5,espacement:20,arrosage:"Modéré (1×/sem)",soleil:"🌤️ Mi-soleil",notes:"Germination longue. Tremper les graines 24h avant."},
+  {id:17,nom:"Ciboulette",emoji:"🌿",categorie:"Aromatique",semisDebut:8,semisFin:16,plantationDebut:null,plantationFin:null,recolteDebut:16,recolteFin:48,joursLevee:14,joursRecolte:60,profondeurSemis:0.5,espacement:25,arrosage:"Modéré (1×/sem)",soleil:"🌤️ Mi-soleil",notes:"Vivace. Couper régulièrement pour stimuler."},
+  {id:18,nom:"Souci (Calendula)",emoji:"🌼",categorie:"Fleur",semisDebut:9,semisFin:14,plantationDebut:13,plantationFin:18,recolteDebut:18,recolteFin:40,joursLevee:7,joursRecolte:55,profondeurSemis:1,espacement:25,arrosage:"Peu (1×/sem)",soleil:"☀️ Plein soleil",notes:"Répulsif naturel contre pucerons. Compagnon idéal des légumes."},
+];
+
+const CATEGORIES = ["Toutes", ...new Set(PLANTS.map(p => p.categorie))];
+
+let currentWeek = getCurrentWeek();
+let currentTab = 'plantes';
+let searchVal = '';
+let catVal = 'Toutes';
+let openCards = new Set();
+
+function getCurrentWeek() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+}
+
+function getMois(w) {
+  return MOIS[Math.min(Math.floor(((w-1)/52)*12), 11)];
+}
+
+function updateHeader() {
+  document.getElementById('week-display').textContent = 'S' + currentWeek;
+  document.getElementById('week-mois-display').textContent = getMois(currentWeek);
+}
+
+function changeWeek(d) {
+  currentWeek = Math.max(1, Math.min(52, currentWeek + d));
+  updateHeader();
+  render();
+}
+
+function setTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function bar(debut, fin, color) {
+  if (!debut || !fin) return '';
+  const left = ((debut-1)/52*100).toFixed(1);
+  const width = ((fin-debut+1)/52*100).toFixed(1);
+  return `<div class="bar-wrap"><div class="bar-fill" style="left:${left}%;width:${width}%;background:${color}"></div></div>`;
+}
+
+function toggleCard(id) {
+  if (openCards.has(id)) openCards.delete(id);
+  else openCards.add(id);
+  render();
+}
+
+function renderPlantes() {
+  const filtered = PLANTS.filter(p => {
+    const ms = p.nom.toLowerCase().includes(searchVal.toLowerCase());
+    const mc = catVal === 'Toutes' || p.categorie === catVal;
+    return ms && mc;
+  });
+
+  let catOptions = CATEGORIES.map(c => `<option value="${c}" ${c===catVal?'selected':''}>${c}</option>`).join('');
+
+  let cards = filtered.map(p => {
+    const isSemis = p.semisDebut && currentWeek >= p.semisDebut && currentWeek <= p.semisFin;
+    const isPlant = p.plantationDebut && currentWeek >= p.plantationDebut && currentWeek <= p.plantationFin;
+    const isRecol = currentWeek >= p.recolteDebut && currentWeek <= p.recolteFin;
+    const badge = isSemis ? `<span class="badge badge-semis">🌱 Semer maintenant</span>`
+      : isPlant ? `<span class="badge badge-plant">🪴 Planter maintenant</span>`
+      : isRecol ? `<span class="badge badge-recolte">✂️ Récolter maintenant</span>` : '';
+
+    const isOpen = openCards.has(p.id);
+
+    let details = '';
+    if (isOpen) {
+      details = `<div class="card-details">
+        <div class="detail-grid">
+          <div class="detail-box"><div class="detail-label">🌱 Semis</div><div class="detail-value">${p.semisDebut ? `S${p.semisDebut} → S${p.semisFin}` : '—'}</div></div>
+          <div class="detail-box"><div class="detail-label">🪴 Plantation</div><div class="detail-value">${p.plantationDebut ? `S${p.plantationDebut} → S${p.plantationFin}` : 'Semis direct'}</div></div>
+          <div class="detail-box"><div class="detail-label">✂️ Récolte</div><div class="detail-value">S${p.recolteDebut} → S${p.recolteFin}</div></div>
+          <div class="detail-box"><div class="detail-label">📅 Jours à récolte</div><div class="detail-value">${p.joursRecolte} jours</div></div>
+          ${p.joursLevee ? `<div class="detail-box"><div class="detail-label">⏱️ Levée</div><div class="detail-value">${p.joursLevee} jours</div></div>` : ''}
+          <div class="detail-box"><div class="detail-label">📏 Prof. semis</div><div class="detail-value">${p.profondeurSemis} cm</div></div>
+          <div class="detail-box"><div class="detail-label">↔️ Espacement</div><div class="detail-value">${p.espacement} cm</div></div>
+          <div class="detail-box"><div class="detail-label">💧 Arrosage</div><div class="detail-value">${p.arrosage}</div></div>
+          <div class="detail-box full"><div class="detail-label">☀️ Exposition</div><div class="detail-value">${p.soleil}</div></div>
+        </div>
+        <div class="note-box">💡 ${p.notes}</div>
+        <div class="legend-mini">
+          <span><span class="legende-dot" style="background:#6EE7B7"></span>Semis</span>
+          <span><span class="legende-dot" style="background:#93C5FD"></span>Plantation</span>
+          <span><span class="legende-dot" style="background:#FCD34D"></span>Récolte</span>
+        </div>
+      </div>`;
+    }
+
+    return `<div class="card ${isOpen?'open':''}" id="card-${p.id}">
+      <div class="card-header" onclick="toggleCard(${p.id})">
+        <span class="card-emoji">${p.emoji}</span>
+        <div class="card-info">
+          <div class="card-title">
+            <span class="card-name">${p.nom}</span>
+            <span class="tag">${p.categorie}</span>
+            ${badge}
+          </div>
+          ${bar(p.semisDebut, p.semisFin, '#6EE7B7')}
+          ${bar(p.plantationDebut, p.plantationFin, '#93C5FD')}
+          ${bar(p.recolteDebut, p.recolteFin, '#FCD34D')}
+        </div>
+        <span class="card-chevron">▾</span>
+      </div>
+      ${details}
+    </div>`;
+  }).join('');
+
+  if (!filtered.length) cards = `<div class="empty">Aucune plante trouvée 🌿</div>`;
+
+  return `
+    <div class="filtres">
+      <input type="search" placeholder="🔍 Rechercher…" value="${searchVal}" oninput="searchVal=this.value;render()" />
+      
